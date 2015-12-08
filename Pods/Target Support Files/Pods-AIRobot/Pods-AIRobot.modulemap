@@ -1,0 +1,6 @@
+framework module Pods_AIRobot {
+  umbrella header "Pods-AIRobot-umbrella.h"
+
+  export *
+  module * { export * }
+}
