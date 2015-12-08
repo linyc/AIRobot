@@ -17,17 +17,31 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         
-        Parse.setApplicationId("V5qnd5XILb5oWTpKTwEWXhXx5h4YUPBzSd2DFgca", clientKey: "OmKfCdu7q6rmbX9aufYEvF9Ue6Rqy8JpRrO943A7")
-        var query = PFQuery(className: "Messages")
-        query.orderByAscending("sendDate")
-        query.findObjectsInBackgroundWithBlock { (objects, error) -> Void in
-            for object in objects as [PFObject]!{
-                let incoming:Bool = object["incoming"] as! Bool
-                let text:String = object["text"] as! String
-                let sendDate:NSDate = object["sendDate"] as! NSDate
-                print("\\(object.objectId!)\\n\\(incoming)\\n\\(text)\\n\\(sendDate)");
-            }
-        }
+//        Parse.setApplicationId("V5qnd5XILb5oWTpKTwEWXhXx5h4YUPBzSd2DFgca", clientKey: "OmKfCdu7q6rmbX9aufYEvF9Ue6Rqy8JpRrO943A7")
+//        var query = PFQuery(className: "Messages")
+//        query.orderByAscending("sendDate")
+//        query.findObjectsInBackgroundWithBlock { (objects, error) -> Void in
+//            for object in objects! as [PFObject]{
+//                let incoming:Bool = object["incoming"] as! Bool
+//                let text:String = object["text"] as! String
+//                let sentDate:NSDate = object["sentDate"] as! NSDate
+//                print("\(object.objectId!)\n\(incoming)\n\(text)\n\(sentDate)");
+//            }
+//        }
+        
+        var chatVC:ViewController = ViewController()
+        chatVC.title = "AIRobot"
+        
+        UINavigationBar.appearance().tintColor = UIColor(red: 0.05, green: 0.47, blue: 0.91, alpha: 1)
+        UINavigationBar.appearance().barTintColor = UIColor(red: 0.05, green: 0.47, blue: 0.91, alpha: 1)
+        UINavigationBar.appearance().titleTextAttributes = [NSForegroundColorAttributeName:UIColor.whiteColor()]
+        UIApplication.sharedApplication().statusBarStyle = .LightContent
+        
+        var navigationVC:UINavigationController = UINavigationController(rootViewController: chatVC)
+        let frame = UIScreen.mainScreen().bounds
+        window = UIWindow(frame: frame)
+        window!.rootViewController = navigationVC
+        window!.makeKeyAndVisible()
         
         return true
     }

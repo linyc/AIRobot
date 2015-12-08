@@ -12,6 +12,7 @@
 		585CC31A1C152A1F0000A967 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 585CC3181C152A1F0000A967 /* Main.storyboard */; };
 		585CC31C1C152A1F0000A967 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 585CC31B1C152A1F0000A967 /* Assets.xcassets */; };
 		585CC31F1C152A200000A967 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 585CC31D1C152A200000A967 /* LaunchScreen.storyboard */; };
+		74F74ECB1C17427D00E6B06B /* InputTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74F74ECA1C17427D00E6B06B /* InputTextView.swift */; };
 		876CFACC227EC37F71CCEDF3 /* Pods_AIRobot.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6F439AA6EBF961ADD5DD3DF8 /* Pods_AIRobot.framework */; };
 /* End PBXBuildFile section */
 
@@ -25,6 +26,7 @@
 		585CC31E1C152A200000A967 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		585CC3201C152A200000A967 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6F439AA6EBF961ADD5DD3DF8 /* Pods_AIRobot.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AIRobot.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		74F74ECA1C17427D00E6B06B /* InputTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InputTextView.swift; sourceTree = "<group>"; };
 		D005ED7C0C37E37BBF79AE08 /* Pods-AIRobot.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AIRobot.release.xcconfig"; path = "Pods/Target Support Files/Pods-AIRobot/Pods-AIRobot.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -63,6 +65,7 @@
 			children = (
 				585CC3141C152A1F0000A967 /* AppDelegate.swift */,
 				585CC3161C152A1F0000A967 /* ViewController.swift */,
+				74F74ECA1C17427D00E6B06B /* InputTextView.swift */,
 				585CC3181C152A1F0000A967 /* Main.storyboard */,
 				585CC31B1C152A1F0000A967 /* Assets.xcassets */,
 				585CC31D1C152A200000A967 /* LaunchScreen.storyboard */,
@@ -210,6 +213,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				74F74ECB1C17427D00E6B06B /* InputTextView.swift in Sources */,
 				585CC3171C152A1F0000A967 /* ViewController.swift in Sources */,
 				585CC3151C152A1F0000A967 /* AppDelegate.swift in Sources */,
 			);
