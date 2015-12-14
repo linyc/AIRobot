@@ -14,16 +14,18 @@ let toolBarMinHeight:CGFloat = 44
 
 class ViewController: UITableViewController ,UITextViewDelegate{
 
-var toolBar:UIToolbar!
-var textView:UITextView!
-var sendButton:UIButton!
+    var toolBar:UIToolbar!
+    var textView:UITextView!
+    var sendButton:UIButton!
+    
+    var messages:[[Message]] = [[]]
     
     override var inputAccessoryView:UIView!{
         get{
             if toolBar == nil{
                 toolBar = UIToolbar(frame: CGRectMake(0,0,UIScreen.mainScreen().bounds.size.width,toolBarMinHeight-0.5))
                 
-                textView = InputTextView(frame:CGRectMake(5, 5, 200, 30))
+                textView = InputTextView(frame:CGRectZero)
                 textView.backgroundColor = UIColor(white: 250/255, alpha: 1)
                 textView.delegate = self
                 textView.font = UIFont.systemFontOfSize(messageFontSize)
@@ -66,11 +68,87 @@ var sendButton:UIButton!
     }
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+
+        self.tableView.registerClass(MessageSentDateTableViewCell.self, forCellReuseIdentifier: NSStringFromClass(MessageSentDateTableViewCell))
+        
         self.tableView.keyboardDismissMode = .Interactive
-        self.becomeFirstResponder()
+        self.tableView.estimatedRowHeight = 44
+        //对tableView进行一些必要的设置,由于tableView底部有一个输入框，因此会遮挡cell，所以要将tableView的内容inset增加一些底部位移
+        self.tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: toolBarMinHeight, right: 0)
+        self.tableView.separatorStyle = .None
+        
+        messages = [
+            [
+                Message(incoming: true, text: "你叫什么名字？", sentDate: NSDate(timeIntervalSinceNow: -12*60*60*24)),
+                Message(incoming: false, text: "我叫灵灵，聪明又可爱的灵灵", sentDate: NSDate(timeIntervalSinceNow:-12*60*60*24))
+            ],
+            [
+                Message(incoming: true, text: "你爱不爱我？", sentDate: NSDate(timeIntervalSinceNow: -6*60*60*24 - 200)),
+                Message(incoming: false, text: "爱你么么哒", sentDate: NSDate(timeIntervalSinceNow: -6*60*60*24 - 100))
+            ],
+            [
+                Message(incoming: true, text: "北京今天天气", sentDate: NSDate(timeIntervalSinceNow: -60*60*18)),
+                Message(incoming: false, text: "北京:08/30 周日,19-27° 21° 雷阵雨转小雨-中雨 微风小于3级;08/31 周一,18-26° 中雨 微风小于3级;09/01 周二,18-25° 阵雨 微风小于3级;09/02 周三,20-30° 多云 微风小于3级", sentDate: NSDate(timeIntervalSinceNow: -60*60*18))
+            ],
+            [
+                Message(incoming: true, text: "你在干嘛", sentDate: NSDate(timeIntervalSinceNow: -60)),
+                Message(incoming: false, text: "我会逗你开心啊", sentDate: NSDate(timeIntervalSinceNow: -65))
+            ],
+        ]
+    }
+    
+    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+        return messages.count
+    }
+    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return messages[section].count + 1
+    }
+    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        if indexPath.row == 0{
+            let cellIdentifier = NSStringFromClass(MessageSentDateTableViewCell)
+            let cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier, forIndexPath: indexPath) as! MessageSentDateTableViewCell
+            let message = messages[indexPath.section][0]
+            
+//            cell.sentDateLabel.text = "\(message.sentDate)"
+            cell.sentDateLabel.text = formatDate(message.sentDate)
+            
+            return cell
+        }
+        else{
+            let cellIdentifier = NSStringFromClass(MessageBubbleTableViewCell)
+            var cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier) as! MessageBubbleTableViewCell!
+            if cell == nil{
+                cell = MessageBubbleTableViewCell(style: .Default, reuseIdentifier: cellIdentifier)
+            }
+            
+            let message = messages[indexPath.section][indexPath.row - 1]
+            cell.configureWithMessage(message)
+            
+            return cell
+        }
     }
 
+    func formatDate(date:NSDate)->String{
+        let calendar = NSCalendar.currentCalendar()
+        let dateFmt = NSDateFormatter()
+        dateFmt.locale = NSLocale(localeIdentifier: "zh_CN")
+        
+        let last18hours = (-18*60*60 < date.timeIntervalSinceNow)
+        let isToday = calendar.isDateInToday(date)
+        let isLast7Days = (calendar.compareDate(NSDate(timeIntervalSinceNow: -7*24*3600), toDate: date, toUnitGranularity:.Day) == NSComparisonResult.OrderedAscending)
+        
+        if last18hours || isToday{
+            dateFmt.dateFormat = "a HH:mm"
+        }
+        else if isLast7Days{
+            dateFmt.dateFormat = "MM月dd日 a HH:mm EEEE"
+        }
+        else{
+            dateFmt.dateFormat = "YYYY年MM月dd日 a HH:mm"
+        }
+        
+        return dateFmt.stringFromDate(date)
+    }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
