@@ -18,4 +18,5 @@ class Message: NSObject {
         self.text = text
         self.sentDate = sentDate
     }
+    
 }

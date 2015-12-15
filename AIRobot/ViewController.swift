@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Parse
 
 let messageFontSize:CGFloat = 17
 let toolBarMinHeight:CGFloat = 44
@@ -77,24 +78,58 @@ class ViewController: UITableViewController ,UITextViewDelegate{
         self.tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: toolBarMinHeight, right: 0)
         self.tableView.separatorStyle = .None
         
-        messages = [
-            [
-                Message(incoming: true, text: "你叫什么名字？", sentDate: NSDate(timeIntervalSinceNow: -12*60*60*24)),
-                Message(incoming: false, text: "我叫灵灵，聪明又可爱的灵灵", sentDate: NSDate(timeIntervalSinceNow:-12*60*60*24))
-            ],
-            [
-                Message(incoming: true, text: "你爱不爱我？", sentDate: NSDate(timeIntervalSinceNow: -6*60*60*24 - 200)),
-                Message(incoming: false, text: "爱你么么哒", sentDate: NSDate(timeIntervalSinceNow: -6*60*60*24 - 100))
-            ],
-            [
-                Message(incoming: true, text: "北京今天天气", sentDate: NSDate(timeIntervalSinceNow: -60*60*18)),
-                Message(incoming: false, text: "北京:08/30 周日,19-27° 21° 雷阵雨转小雨-中雨 微风小于3级;08/31 周一,18-26° 中雨 微风小于3级;09/01 周二,18-25° 阵雨 微风小于3级;09/02 周三,20-30° 多云 微风小于3级", sentDate: NSDate(timeIntervalSinceNow: -60*60*18))
-            ],
-            [
-                Message(incoming: true, text: "你在干嘛", sentDate: NSDate(timeIntervalSinceNow: -60)),
-                Message(incoming: false, text: "我会逗你开心啊", sentDate: NSDate(timeIntervalSinceNow: -65))
-            ],
-        ]
+//        messages = [
+//            [
+//                Message(incoming: true, text: "你叫什么名字？", sentDate: NSDate(timeIntervalSinceNow: -12*60*60*24)),
+//                Message(incoming: false, text: "我叫灵灵，聪明又可爱的灵灵", sentDate: NSDate(timeIntervalSinceNow:-12*60*60*24))
+//            ],
+//            [
+//                Message(incoming: true, text: "你爱不爱我？", sentDate: NSDate(timeIntervalSinceNow: -6*60*60*24 - 200)),
+//                Message(incoming: false, text: "爱你么么哒", sentDate: NSDate(timeIntervalSinceNow: -6*60*60*24 - 100))
+//            ],
+//            [
+//                Message(incoming: true, text: "北京今天天气", sentDate: NSDate(timeIntervalSinceNow: -60*60*18)),
+//                Message(incoming: false, text: "北京:08/30 周日,19-27° 21° 雷阵雨转小雨-中雨 微风小于3级;08/31 周一,18-26° 中雨 微风小于3级;09/01 周二,18-25° 阵雨 微风小于3级;09/02 周三,20-30° 多云 微风小于3级", sentDate: NSDate(timeIntervalSinceNow: -60*60*18))
+//            ],
+//            [
+//                Message(incoming: true, text: "你在干嘛", sentDate: NSDate(timeIntervalSinceNow: -60)),
+//                Message(incoming: false, text: "我会逗你开心啊", sentDate: NSDate(timeIntervalSinceNow: -65))
+//            ],
+//        ]
+        initData()
+    }
+    
+    func initData(){
+        var index = 0
+        var section = 0
+        var currentDate:NSDate?
+        //
+        let query:PFQuery = PFQuery(className:"Messages")
+        query.orderByAscending("sentDate")
+        do{
+            let objs = try query.findObjects()
+            for object in objs {
+                let message = Message(incoming: object["incoming"] as! Bool, text: object["text"] as! String, sentDate: object["sentDate"] as! NSDate)
+                
+                if index == 0{
+                    currentDate = message.sentDate
+                }
+                let timeInterval = message.sentDate.timeIntervalSinceDate(currentDate!)
+                
+                if timeInterval < 120{
+                    messages[section].append(message)
+                }
+                else{
+                    section++
+                    messages.append([message])
+                }
+                currentDate = message.sentDate
+                index++
+            }
+        }
+        catch {
+            
+        }
     }
     
     override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
@@ -107,11 +142,12 @@ class ViewController: UITableViewController ,UITextViewDelegate{
         if indexPath.row == 0{
             let cellIdentifier = NSStringFromClass(MessageSentDateTableViewCell)
             let cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier, forIndexPath: indexPath) as! MessageSentDateTableViewCell
-            let message = messages[indexPath.section][0]
+           
+            let message:Message = try messages[indexPath.section][0]
             
 //            cell.sentDateLabel.text = "\(message.sentDate)"
             cell.sentDateLabel.text = formatDate(message.sentDate)
-            
+           
             return cell
         }
         else{
