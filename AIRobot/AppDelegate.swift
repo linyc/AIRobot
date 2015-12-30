@@ -17,7 +17,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         
-//        Parse.setApplicationId("V5qnd5XILb5oWTpKTwEWXhXx5h4YUPBzSd2DFgca", clientKey: "OmKfCdu7q6rmbX9aufYEvF9Ue6Rqy8JpRrO943A7")
+        Parse.setApplicationId("V5qnd5XILb5oWTpKTwEWXhXx5h4YUPBzSd2DFgca", clientKey: "OmKfCdu7q6rmbX9aufYEvF9Ue6Rqy8JpRrO943A7")
 //        var query = PFQuery(className: "Messages")
 //        query.orderByAscending("sendDate")
 //        query.findObjectsInBackgroundWithBlock { (objects, error) -> Void in

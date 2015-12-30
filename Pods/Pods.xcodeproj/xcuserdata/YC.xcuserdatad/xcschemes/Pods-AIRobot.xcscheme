@@ -14,7 +14,7 @@
             buildForArchiving = "YES">
             <BuildableReference
                BuildableIdentifier = 'primary'
-               BlueprintIdentifier = 'ED5A13C285185316D1D87D82'
+               BlueprintIdentifier = 'E83E00447B731C6792A2AC06'
                BlueprintName = 'Pods-AIRobot'
                ReferencedContainer = 'container:Pods.xcodeproj'
                BuildableName = 'Pods_AIRobot.framework'>

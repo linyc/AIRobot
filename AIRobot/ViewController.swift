@@ -19,7 +19,7 @@ class ViewController: UITableViewController ,UITextViewDelegate{
     var textView:UITextView!
     var sendButton:UIButton!
     
-    var messages:[[Message]] = [[]]
+    var messages:[[Message]]!
     
     override var inputAccessoryView:UIView!{
         get{
@@ -77,7 +77,7 @@ class ViewController: UITableViewController ,UITextViewDelegate{
         //对tableView进行一些必要的设置,由于tableView底部有一个输入框，因此会遮挡cell，所以要将tableView的内容inset增加一些底部位移
         self.tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: toolBarMinHeight, right: 0)
         self.tableView.separatorStyle = .None
-        
+
 //        messages = [
 //            [
 //                Message(incoming: true, text: "你叫什么名字？", sentDate: NSDate(timeIntervalSinceNow: -12*60*60*24)),
@@ -97,39 +97,72 @@ class ViewController: UITableViewController ,UITextViewDelegate{
 //            ],
 //        ]
         initData()
+        
     }
     
     func initData(){
         var index = 0
         var section = 0
         var currentDate:NSDate?
+        messages = [[]]
         //
         let query:PFQuery = PFQuery(className:"Messages")
         query.orderByAscending("sentDate")
-        do{
-            let objs = try query.findObjects()
-            for object in objs {
-                let message = Message(incoming: object["incoming"] as! Bool, text: object["text"] as! String, sentDate: object["sentDate"] as! NSDate)
-                
-                if index == 0{
+        
+        query.findObjectsInBackgroundWithBlock { (objects:[PFObject]?, error:NSError?) -> Void in
+            if error == nil{
+                for object in objects!{
+                    let message = Message(incoming: object["incoming"] as! Bool, text: object["text"] as! String, sentDate: object["sentDate"] as! NSDate)
+
+                    if index == 0{
+                        currentDate = message.sentDate
+                    }
+                    let timeInterval = message.sentDate.timeIntervalSinceDate(currentDate!)
+                    
+                    if timeInterval < 120{
+                        self.messages[section].append(message)
+                    }
+                    else{
+                        section++
+                        self.messages.append([message])
+                    }
                     currentDate = message.sentDate
+                    index++
+
                 }
-                let timeInterval = message.sentDate.timeIntervalSinceDate(currentDate!)
-                
-                if timeInterval < 120{
-                    messages[section].append(message)
-                }
-                else{
-                    section++
-                    messages.append([message])
-                }
-                currentDate = message.sentDate
-                index++
+                self.tableView.reloadData()
+            }
+            else{
+                print("Error:\(error?.userInfo)")
             }
         }
-        catch {
-            
-        }
+        
+//        do{
+//            let objs = try! query.findObjects()
+//            for object in objs {
+//                let message = Message(incoming: object["incoming"] as! Bool, text: object["text"] as! String, sentDate: object["sentDate"] as! NSDate)
+//                
+//                if index == 0{
+//                    currentDate = message.sentDate
+//                }
+//                let timeInterval = message.sentDate.timeIntervalSinceDate(currentDate!)
+//                
+//                if timeInterval < 120{
+//                    messages[section].append(message)
+//                }
+//                else{
+//                    section++
+//                    messages.append([message])
+//                }
+//                currentDate = message.sentDate
+//                index++
+//            }
+//        }
+//        catch is ErrorType {
+//            
+//        }
+        
+        
     }
     
     override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
@@ -139,29 +172,33 @@ class ViewController: UITableViewController ,UITextViewDelegate{
         return messages[section].count + 1
     }
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        if indexPath.row == 0{
-            let cellIdentifier = NSStringFromClass(MessageSentDateTableViewCell)
-            let cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier, forIndexPath: indexPath) as! MessageSentDateTableViewCell
-           
-            let message:Message = try messages[indexPath.section][0]
-            
-//            cell.sentDateLabel.text = "\(message.sentDate)"
-            cell.sentDateLabel.text = formatDate(message.sentDate)
-           
-            return cell
-        }
-        else{
-            let cellIdentifier = NSStringFromClass(MessageBubbleTableViewCell)
-            var cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier) as! MessageBubbleTableViewCell!
-            if cell == nil{
-                cell = MessageBubbleTableViewCell(style: .Default, reuseIdentifier: cellIdentifier)
+        if (messages[0].count>0){
+            if indexPath.row == 0{
+                
+                let cellIdentifier = NSStringFromClass(MessageSentDateTableViewCell)
+                let cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier, forIndexPath: indexPath) as! MessageSentDateTableViewCell
+                
+                let message:Message = try messages[indexPath.section][0]
+                
+                //            cell.sentDateLabel.text = "\(message.sentDate)"
+                cell.sentDateLabel.text = formatDate(message.sentDate)
+                
+                return cell
             }
-            
-            let message = messages[indexPath.section][indexPath.row - 1]
-            cell.configureWithMessage(message)
-            
-            return cell
+            else{
+                let cellIdentifier = NSStringFromClass(MessageBubbleTableViewCell)
+                var cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier) as! MessageBubbleTableViewCell!
+                if cell == nil{
+                    cell = MessageBubbleTableViewCell(style: .Default, reuseIdentifier: cellIdentifier)
+                }
+                
+                let message = messages[indexPath.section][indexPath.row - 1]
+                cell.configureWithMessage(message)
+                
+                return cell
+            }
         }
+        return UITableViewCell()
     }
 
     func formatDate(date:NSDate)->String{
