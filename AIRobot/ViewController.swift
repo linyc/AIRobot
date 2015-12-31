@@ -8,10 +8,12 @@
 
 import UIKit
 import Parse
+import Alamofire
 
 let messageFontSize:CGFloat = 17
 let toolBarMinHeight:CGFloat = 44
 
+let textViewMaxHeight: (portrait: CGFloat, landscape: CGFloat) = (portrait: 272, landscape: 90)
 
 class ViewController: UITableViewController ,UITextViewDelegate{
 
@@ -62,6 +64,52 @@ class ViewController: UITableViewController ,UITextViewDelegate{
             
             return toolBar;
         }
+    }
+
+    func sendAction(){
+        messages.append([Message(incoming: false, text: self.textView.text, sentDate: NSDate())])
+        self.textView.text = nil
+        updateTextViewHeight()
+        self.sendButton.enabled = false
+        
+        let lastSection = self.tableView.numberOfSections
+        self.tableView.beginUpdates()
+        self.tableView.insertSections(NSIndexSet(index: lastSection), withRowAnimation: .Automatic)
+        self.tableView.insertRowsAtIndexPaths([NSIndexPath(forRow: 0, inSection: lastSection),NSIndexPath(forRow: 1, inSection: lastSection)], withRowAnimation: .Automatic)
+        self.tableView.endUpdates()
+        tableViewScrollToBottomAnimated(true)
+        
+        
+//        Alamofire.request(.GET, NSURL(string: api_url)!, parameters: ["key":api_key,"info":"","userid":userId]).responseJSON(options: .MutableContainers) { ([_,_,data],error) -> Void in
+//            
+//        }
+    }
+    
+    func updateTextViewHeight(){
+        let oldHeight = self.tableView.frame.height
+        let maxHeight = UIInterfaceOrientationIsPortrait(interfaceOrientation) ? textViewMaxHeight.portrait : textViewMaxHeight.landscape
+        var newHeight = min(textView.sizeThatFits(CGSize(width: self.textView.frame.width, height: CGFloat.max)).height, maxHeight)
+        #if arch(x86_64) || arch(arm64)
+            newHeight = ceil(newHeight)
+        #else
+            newHeight = CGFloat(ceilf(newHeight.native))
+        #endif
+        
+        if newHeight != oldHeight{
+            toolBar.frame.size.height = newHeight + 8 * 2 - 0.5
+        }
+    }
+    func tableViewScrollToBottomAnimated(animated: Bool){
+        let sectionCount = self.tableView.numberOfSections
+        let rowCount = messages[sectionCount-1].count
+        if rowCount>0{
+            self.tableView.scrollToRowAtIndexPath(NSIndexPath(forRow: rowCount, inSection: sectionCount-1), atScrollPosition: .Bottom, animated: animated)
+        }
+    }
+    
+    func textViewDidChange(textView: UITextView) {
+        self.updateTextViewHeight()
+        self.sendButton.enabled = textView.hasText()
     }
     
     override func canBecomeFirstResponder() -> Bool {
@@ -137,69 +185,9 @@ class ViewController: UITableViewController ,UITextViewDelegate{
             }
         }
         
-//        do{
-//            let objs = try! query.findObjects()
-//            for object in objs {
-//                let message = Message(incoming: object["incoming"] as! Bool, text: object["text"] as! String, sentDate: object["sentDate"] as! NSDate)
-//                
-//                if index == 0{
-//                    currentDate = message.sentDate
-//                }
-//                let timeInterval = message.sentDate.timeIntervalSinceDate(currentDate!)
-//                
-//                if timeInterval < 120{
-//                    messages[section].append(message)
-//                }
-//                else{
-//                    section++
-//                    messages.append([message])
-//                }
-//                currentDate = message.sentDate
-//                index++
-//            }
-//        }
-//        catch is ErrorType {
-//            
-//        }
-        
         
     }
     
-    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        return messages.count
-    }
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return messages[section].count + 1
-    }
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        if (messages[0].count>0){
-            if indexPath.row == 0{
-                
-                let cellIdentifier = NSStringFromClass(MessageSentDateTableViewCell)
-                let cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier, forIndexPath: indexPath) as! MessageSentDateTableViewCell
-                
-                let message:Message = try messages[indexPath.section][0]
-                
-                //            cell.sentDateLabel.text = "\(message.sentDate)"
-                cell.sentDateLabel.text = formatDate(message.sentDate)
-                
-                return cell
-            }
-            else{
-                let cellIdentifier = NSStringFromClass(MessageBubbleTableViewCell)
-                var cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier) as! MessageBubbleTableViewCell!
-                if cell == nil{
-                    cell = MessageBubbleTableViewCell(style: .Default, reuseIdentifier: cellIdentifier)
-                }
-                
-                let message = messages[indexPath.section][indexPath.row - 1]
-                cell.configureWithMessage(message)
-                
-                return cell
-            }
-        }
-        return UITableViewCell()
-    }
 
     func formatDate(date:NSDate)->String{
         let calendar = NSCalendar.currentCalendar()
@@ -225,6 +213,41 @@ class ViewController: UITableViewController ,UITextViewDelegate{
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+//MARK: tableview delegate
+    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+        return messages.count
+    }
+    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return messages[section].count + 1
+    }
+    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        if (messages[0].count>0){
+            if indexPath.row == 0{
+                
+                let cellIdentifier = NSStringFromClass(MessageSentDateTableViewCell)
+                let cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier, forIndexPath: indexPath) as! MessageSentDateTableViewCell
+                
+                let message:Message = messages[indexPath.section][0]
+                cell.sentDateLabel.text = formatDate(message.sentDate)
+                
+                return cell
+            }
+            else{
+                let cellIdentifier = NSStringFromClass(MessageBubbleTableViewCell)
+                var cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier) as! MessageBubbleTableViewCell!
+                if cell == nil{
+                    cell = MessageBubbleTableViewCell(style: .Default, reuseIdentifier: cellIdentifier)
+                }
+                
+                let message = messages[indexPath.section][indexPath.row - 1]
+                cell.configureWithMessage(message)
+                
+                return cell
+            }
+        }
+        return UITableViewCell()
     }
 
 

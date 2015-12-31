@@ -9,6 +9,10 @@
 import UIKit
 import Parse
 
+let api_key = "a534d55ad7ec3627c74f96bab61baa7a"
+let api_url = "http://www.tuling123.com/openapi/wechatapi?key=a534d55ad7ec3627c74f96bab61baa7a"
+let userId = "suibianyigeiddoukeyi"
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
