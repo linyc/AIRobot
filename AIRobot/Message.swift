@@ -12,6 +12,7 @@ class Message: NSObject {
     let incoming:Bool
     let text:String
     let sentDate:NSDate
+    var url:String?
     
     init(incoming:Bool, text:String, sentDate:NSDate){
         self.incoming = incoming

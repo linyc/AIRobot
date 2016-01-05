@@ -65,9 +65,28 @@ class ViewController: UITableViewController ,UITextViewDelegate{
             return toolBar;
         }
     }
+    
+    func saveMessage(message:Message){
+        var saveObj = PFObject(className: "Messages")
+        saveObj["incoming"] = message.incoming
+        saveObj["text"] = message.text
+        saveObj["sentDate"] = message.sentDate
+        saveObj.saveEventually { (success, error) -> Void in
+            if success{
+                print("Save to server success")
+            }
+            else{
+                print("Save to server fail:\(error)")
+            }
+        }
+    }
 
     func sendAction(){
-        messages.append([Message(incoming: false, text: self.textView.text, sentDate: NSDate())])
+        var sentMsg = Message(incoming: false, text: self.textView.text, sentDate: NSDate())
+        self.messages.append([sentMsg])
+        self.saveMessage(sentMsg)
+        
+        var question = self.textView.text
         self.textView.text = nil
         updateTextViewHeight()
         self.sendButton.enabled = false
@@ -80,9 +99,40 @@ class ViewController: UITableViewController ,UITextViewDelegate{
         tableViewScrollToBottomAnimated(true)
         
         
-//        Alamofire.request(.GET, NSURL(string: api_url)!, parameters: ["key":api_key,"info":"","userid":userId]).responseJSON(options: .MutableContainers) { ([_,_,data],error) -> Void in
-//            
-//        }
+//        这种也可以
+//        Alamofire.request(.GET, NSURL(string: api_url)!, parameters: ["key":api_key,"info":question,"userid":userId]).response { (_,_,data,error) -> Void in
+        
+        Alamofire.request(.GET, NSURL(string: api_url)!, parameters: ["key":api_key,"info":question,"userid":userId]).responseJSON(options: .MutableContainers) { response in
+        
+            if response.result.error == nil{
+                do{
+                    let d = try NSJSONSerialization.JSONObjectWithData(response.data!, options: NSJSONReadingOptions())
+                    print(d)
+                    if let text = d.valueForKey("text") as? String{
+//                        self.messages[lastSection].append(Message(incoming: true, text: text, sentDate: NSDate()))
+                        if let url = d.valueForKey("url") as? String{
+                            var msg = Message(incoming: true, text: text+"\n(点击查看消息)", sentDate: NSDate())
+                            msg.url = url
+                            self.messages[lastSection].append(msg)
+                        }
+                        else{
+                            var msg = Message(incoming: true, text: text, sentDate: NSDate())
+                            self.messages[lastSection].append(msg)
+                        }
+                        self.tableView.beginUpdates()
+                        self.tableView.insertRowsAtIndexPaths([NSIndexPath(forRow: 2, inSection: lastSection)], withRowAnimation: .Automatic)
+                        self.tableView.endUpdates()
+                        self.tableViewScrollToBottomAnimated(true)
+                    }
+                }
+                catch is ErrorType{
+                    print("try error: \(ErrorType.self)")
+                }
+            }
+            else{
+                print("Error occured! \(response.result.error?.userInfo)")
+            }
+        }
     }
     
     func updateTextViewHeight(){
@@ -249,7 +299,12 @@ class ViewController: UITableViewController ,UITextViewDelegate{
         }
         return UITableViewCell()
     }
-
+    override func tableView(tableView: UITableView, willSelectRowAtIndexPath indexPath: NSIndexPath) -> NSIndexPath? {
+        if let url = messages[indexPath.section][indexPath.row-1].url{
+            UIApplication.sharedApplication().openURL(NSURL(string: url)!)
+        }
+        return nil
+    }
 
 }
 
