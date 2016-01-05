@@ -71,6 +71,7 @@ class ViewController: UITableViewController ,UITextViewDelegate{
         saveObj["incoming"] = message.incoming
         saveObj["text"] = message.text
         saveObj["sentDate"] = message.sentDate
+        saveObj["url"] = message.url==nil ? "" : message.url
         saveObj.saveEventually { (success, error) -> Void in
             if success{
                 print("Save to server success")
@@ -211,6 +212,9 @@ class ViewController: UITableViewController ,UITextViewDelegate{
             if error == nil{
                 for object in objects!{
                     let message = Message(incoming: object["incoming"] as! Bool, text: object["text"] as! String, sentDate: object["sentDate"] as! NSDate)
+                    if let url = object["url"] as? String{
+                        message.url = url
+                    }
 
                     if index == 0{
                         currentDate = message.sentDate
