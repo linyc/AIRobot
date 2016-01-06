@@ -7,8 +7,8 @@
 //
 
 import UIKit
-import Parse
 import Alamofire
+import Parse
 
 let messageFontSize:CGFloat = 17
 let toolBarMinHeight:CGFloat = 44
@@ -72,6 +72,7 @@ class ViewController: UITableViewController ,UITextViewDelegate{
         saveObj["text"] = message.text
         saveObj["sentDate"] = message.sentDate
         saveObj["url"] = message.url==nil ? "" : message.url
+        saveObj["createdBy"] = PFUser.currentUser()
         saveObj.saveEventually { (success, error) -> Void in
             if success{
                 print("Save to server success")
@@ -158,6 +159,7 @@ class ViewController: UITableViewController ,UITextViewDelegate{
         }
     }
     
+    
     func textViewDidChange(textView: UITextView) {
         self.updateTextViewHeight()
         self.sendButton.enabled = textView.hasText()
@@ -197,6 +199,16 @@ class ViewController: UITableViewController ,UITextViewDelegate{
 //        ]
         initData()
         
+        
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillShow:", name: UIKeyboardWillShowNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardDidShow:", name: UIKeyboardDidShowNotification, object: nil)
+    }
+    func keyboardWillShow(notif: NSNotification){
+//        let rect = notif.userInfo![UIKeyboardFrameBeginUserInfoKey]!.CGRectValue
+//        self.tableView.contentOffset.y = UIScreen.mainScreen().bounds.height - rect.height
+    }
+    func keyboardDidShow(notif: NSNotification){
+        self.tableViewScrollToBottomAnimated(true)
     }
     
     func initData(){
@@ -207,6 +219,10 @@ class ViewController: UITableViewController ,UITextViewDelegate{
         //
         let query:PFQuery = PFQuery(className:"Messages")
         query.orderByAscending("sentDate")
+        if let user = PFUser.currentUser(){
+            query.whereKey("createdBy", equalTo: user)
+            messages = [[Message(incoming: true, text: "Hello~\(user.username)", sentDate: NSDate())]]
+        }
         
         query.findObjectsInBackgroundWithBlock { (objects:[PFObject]?, error:NSError?) -> Void in
             if error == nil{

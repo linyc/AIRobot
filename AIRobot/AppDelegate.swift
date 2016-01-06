@@ -33,18 +33,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //            }
 //        }
         
-        var chatVC:ViewController = ViewController()
-        chatVC.title = "AIRobot"
+//        var chatVC:ViewController = ViewController()
+//        chatVC.title = "AIRobot"
+
+        var welcomeVC = WelcomeViewController()
         
         UINavigationBar.appearance().tintColor = UIColor(red: 0.05, green: 0.47, blue: 0.91, alpha: 1)
         UINavigationBar.appearance().barTintColor = UIColor(red: 0.05, green: 0.47, blue: 0.91, alpha: 1)
         UINavigationBar.appearance().titleTextAttributes = [NSForegroundColorAttributeName:UIColor.whiteColor()]
         UIApplication.sharedApplication().statusBarStyle = .LightContent
         
-        var navigationVC:UINavigationController = UINavigationController(rootViewController: chatVC)
+//        var navigationVC:UINavigationController = UINavigationController(rootViewController: chatVC)
         let frame = UIScreen.mainScreen().bounds
         window = UIWindow(frame: frame)
-        window!.rootViewController = navigationVC
+//        window!.rootViewController = navigationVC
+        window!.rootViewController = welcomeVC
         window!.makeKeyAndVisible()
         
         return true
