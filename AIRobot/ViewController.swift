@@ -9,13 +9,14 @@
 import UIKit
 import Alamofire
 import Parse
+import SafariServices
 
 let messageFontSize:CGFloat = 17
 let toolBarMinHeight:CGFloat = 44
 
 let textViewMaxHeight: (portrait: CGFloat, landscape: CGFloat) = (portrait: 272, landscape: 90)
 
-class ViewController: UITableViewController ,UITextViewDelegate{
+class ViewController: UITableViewController ,UITextViewDelegate,SFSafariViewControllerDelegate{
 
     var toolBar:UIToolbar!
     var textView:UITextView!
@@ -106,37 +107,38 @@ class ViewController: UITableViewController ,UITextViewDelegate{
         
         Alamofire.request(.GET, NSURL(string: api_url)!, parameters: ["key":api_key,"info":question,"userid":userId]).responseJSON(options: .MutableContainers) { response in
         
-            if response.result.error == nil{
-                do{
-                    let d = try NSJSONSerialization.JSONObjectWithData(response.data!, options: NSJSONReadingOptions())
-                    print(d)
-                    if let text = d.valueForKey("text") as? String{
-//                        self.messages[lastSection].append(Message(incoming: true, text: text, sentDate: NSDate()))
-                        if let url = d.valueForKey("url") as? String{
-                            var msg = Message(incoming: true, text: text+"\n(点击查看消息)", sentDate: NSDate())
-                            msg.url = url
-                            self.messages[lastSection].append(msg)
-                        }
-                        else{
-                            var msg = Message(incoming: true, text: text, sentDate: NSDate())
-                            self.messages[lastSection].append(msg)
-                        }
-                        self.tableView.beginUpdates()
-                        self.tableView.insertRowsAtIndexPaths([NSIndexPath(forRow: 2, inSection: lastSection)], withRowAnimation: .Automatic)
-                        self.tableView.endUpdates()
-                        self.tableViewScrollToBottomAnimated(true)
-                    }
-                }
-                catch is ErrorType{
-                    print("try error: \(ErrorType.self)")
-                }
-            }
-            else{
+            guard response.result.error == nil else{
                 print("Error occured! \(response.result.error?.userInfo)")
+                return
+            }
+            
+            do{
+                let d = try NSJSONSerialization.JSONObjectWithData(response.data!, options: NSJSONReadingOptions())
+                
+                guard let text = d.valueForKey("text") as? String else{
+                    return
+                }
+                //                    self.messages[lastSection].append(Message(incoming: true, text: text, sentDate: NSDate()))
+                if let url = d.valueForKey("url") as? String{
+                    var msg = Message(incoming: true, text: text+"\n(点击查看消息)", sentDate: NSDate())
+                    msg.url = url
+                    self.messages[lastSection].append(msg)
+                }
+                else{
+                    var msg = Message(incoming: true, text: text, sentDate: NSDate())
+                    self.messages[lastSection].append(msg)
+                }
+                self.tableView.beginUpdates()
+                self.tableView.insertRowsAtIndexPaths([NSIndexPath(forRow: 2, inSection: lastSection)], withRowAnimation: .Automatic)
+                self.tableView.endUpdates()
+                self.tableViewScrollToBottomAnimated(true)
+            }
+            catch is ErrorType{
+                print("try error: \(ErrorType.self)")
             }
         }
     }
-    
+
     func updateTextViewHeight(){
         let oldHeight = self.tableView.frame.height
         let maxHeight = UIInterfaceOrientationIsPortrait(interfaceOrientation) ? textViewMaxHeight.portrait : textViewMaxHeight.landscape
@@ -321,10 +323,15 @@ class ViewController: UITableViewController ,UITextViewDelegate{
     }
     override func tableView(tableView: UITableView, willSelectRowAtIndexPath indexPath: NSIndexPath) -> NSIndexPath? {
         if let url = messages[indexPath.section][indexPath.row-1].url{
-            UIApplication.sharedApplication().openURL(NSURL(string: url)!)
+//            UIApplication.sharedApplication().openURL(NSURL(string: url)!)
+            let webVC = SFSafariViewController(URL: NSURL(string: url)!, entersReaderIfAvailable: true)
+            self.presentViewController(webVC, animated: true, completion: nil)
         }
         return nil
     }
-
+    
+    func safariViewControllerDidFinish(controller: SFSafariViewController) {
+        controller.dismissViewControllerAnimated(true, completion: nil)
+    }
 }
 
