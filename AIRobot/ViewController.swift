@@ -170,8 +170,37 @@ class ViewController: UITableViewController ,UITextViewDelegate,SFSafariViewCont
     override func canBecomeFirstResponder() -> Bool {
         return true
     }
+    func firstView()->CAShapeLayer{
+        let layer = CAShapeLayer()
+        
+        let star1Path = UIBezierPath()
+        star1Path.moveToPoint(CGPointMake(164.43, 243.35))
+        star1Path.addLineToPoint(CGPointMake(79.49, 288))
+        star1Path.addLineToPoint(CGPointMake(95.71, 193.42))
+        star1Path.addLineToPoint(CGPointMake(27, 126.44))
+        star1Path.addLineToPoint(CGPointMake(121.96, 112.65))
+        star1Path.addLineToPoint(CGPointMake(164.43, 26.6))
+        star1Path.addLineToPoint(CGPointMake(206.9, 112.65))
+        star1Path.addLineToPoint(CGPointMake(301.86, 126.44))
+        star1Path.addLineToPoint(CGPointMake(233.14, 193.42))
+        star1Path.addLineToPoint(CGPointMake(249.36, 288))
+        star1Path.addLineToPoint(CGPointMake(164.43, 243.35))
+        star1Path.closePath()
+        
+        layer.path = star1Path.CGPath
+        layer.bounds = CGPathGetBoundingBox(layer.path)
+        
+        return layer
+    }
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let logo = firstView()
+//        logo.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.3).CGColor
+        logo.fillColor = UIColor(red: 0, green: 0, blue: 3, alpha: 0.2).CGColor
+        logo.position = CGPoint(x: self.tableView.bounds.width/2, y: self.tableView.bounds.height/2)
+        
+        self.navigationController?.view.layer.addSublayer(logo)
 
         self.tableView.registerClass(MessageSentDateTableViewCell.self, forCellReuseIdentifier: NSStringFromClass(MessageSentDateTableViewCell))
         
